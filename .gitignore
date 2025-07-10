@@ -1,3 +1,6 @@
 .env
 __pycache__/
 memes/
+TODO.md
+rate_limit.json
+meme_logs.json
