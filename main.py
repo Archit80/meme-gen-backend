@@ -131,8 +131,37 @@ async def generate_meme(
     else:
         font_size = int(image.height * 0.07)  # 7% for larger images
 
-    font = ImageFont.truetype(font_path, font_size)    
+    font = ImageFont.truetype(font_path, font_size)
 
+    # ADD WATERMARK LOGIC HERE
+    # Watermark settings
+    watermark_text = "Meme Aunty by Archit80"
+    watermark_font_size = max(12, int(image.height * 0.015))  # Minimum 12px, scales with image
+    
+    try:
+        # Try to use default system font
+        watermark_font = ImageFont.load_default()
+    except:
+        # Fallback to a basic font
+        watermark_font = ImageFont.load_default()
+    
+    # Calculate watermark position (top right)
+    watermark_bbox = draw.textbbox((0, 0), watermark_text, font=watermark_font)
+    watermark_width = watermark_bbox[2] - watermark_bbox[0]
+    watermark_height = watermark_bbox[3] - watermark_bbox[1]
+    
+    watermark_x = image.width - watermark_width - 15  # 15px margin from right
+    watermark_y = 15  # 15px margin from top
+    
+    # Draw watermark with subtle outline for visibility
+    def draw_watermark_with_outline(draw, x, y, text, font):
+        # Simple watermark text without outline
+        draw.text((x, y), text, font=font, fill=(255, 255, 255, 200))  # Semi-transparent white
+    
+    # Draw the watermark
+    draw_watermark_with_outline(draw, watermark_x, watermark_y, watermark_text, watermark_font)
+    
+    # EXISTING MEME TEXT LOGIC CONTINUES...
     bbox = draw.textbbox((0, 0), meme_text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
@@ -182,18 +211,6 @@ async def generate_meme(
         x = (image.width - text_width) // 2
         draw_text_with_outline(draw, x, current_y, line, font)
         current_y += line_height
-
-
-    # return FileResponse(filename, media_type = "image/jpeg")
-    # FileResponse directly downloads the image, but i gotta show it in the frontend
-    
-    # Save the meme LOCALLY with a unique filename
-    # unique_filename = f"meme_{uuid4()}.jpg"
-    # save_path = f"memes/{unique_filename}"
-    # image.save(save_path)
-
-    # # Return a public URL instead of file
-    # meme_url = f"http://localhost:8000/memes/{unique_filename}"
 
     # Save to memory
     buffer = BytesIO()
