@@ -4,3 +4,5 @@ memes/
 TODO.md
 rate_limit.json
 meme_logs.json
+device_fingerprints.json
+ip_names.json
