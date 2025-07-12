@@ -132,17 +132,17 @@ async def generate_meme(
         font_size = int(image.height * 0.07)  # 7% for larger images
 
     font = ImageFont.truetype(font_path, font_size)
-
+    # papyrus = ImageFont.truetype("fonts/Papyrus.ttf", font_size)  # Load Papyrus font for watermark
     # ADD WATERMARK LOGIC HERE
     # Watermark settings
     watermark_text = "Meme Aunty by Archit80"
-    watermark_font_size = max(12, int(image.height * 0.015))  # Minimum 12px, scales with image
+    watermark_font_size = max(16, int(image.height * 0.0375))  # Minimum 16px, scales with image (increased from 0.015 to 0.025)
     
     try:
-        # Try to use default system font
-        watermark_font = ImageFont.load_default()
+        # Use the calculated font size with Impact font
+        watermark_font = ImageFont.truetype(font_path, watermark_font_size)
     except:
-        # Fallback to a basic font
+        # Fallback to default font
         watermark_font = ImageFont.load_default()
     
     # Calculate watermark position (top right)
@@ -153,7 +153,7 @@ async def generate_meme(
     watermark_x = image.width - watermark_width - 15  # 15px margin from right
     watermark_y = 15  # 15px margin from top
     
-    # Draw watermark with subtle outline for visibility
+    # Draw watermark without outline
     def draw_watermark_with_outline(draw, x, y, text, font):
         # Simple watermark text without outline
         draw.text((x, y), text, font=font, fill=(255, 255, 255, 200))  # Semi-transparent white
@@ -161,7 +161,6 @@ async def generate_meme(
     # Draw the watermark
     draw_watermark_with_outline(draw, watermark_x, watermark_y, watermark_text, watermark_font)
     
-    # EXISTING MEME TEXT LOGIC CONTINUES...
     bbox = draw.textbbox((0, 0), meme_text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
