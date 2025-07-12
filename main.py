@@ -22,6 +22,7 @@ from gemini_utils import generate_meme_text  #AI response
 from logger import log_event
 from rate_limit import is_allowed, get_usage
 from codename_manager import get_or_create_name
+from fingerprint_analyzer import get_device_identifier
 
 
 load_dotenv()  # Load environment variables from .env file
@@ -69,17 +70,21 @@ async def greet(name: str):
     return {"message": f"Hello, {name} Ji!"}
 
 
-@app.get("/whoami/")
+@app.post("/whoami/")
 async def whoami(request: Request):
-    
-    # ip = 5689005
-    ip = request.client.host
+    try:
+        body = await request.json()
+        device_token = body.get("device_token")
+    except:
+        device_token = None
 
-    name = get_or_create_name(ip)
+    # Get device identifier using fingerprint analysis
+    identifier = get_device_identifier(device_token, request.client.host)
+    name = get_or_create_name(identifier)
 
     return {
         "name": name,
-        "credits_left": get_usage(ip)
+        "credits_left": get_usage(identifier)
     }
 
 
@@ -95,11 +100,14 @@ def reset_quota():
 async def generate_meme(
     file:UploadFile = File(...),
     vibe: str = Form(...),
+    device_token: str = Form(None),
     request: Request = None
     ):
  
-    ip = request.client.host
-    if not is_allowed(ip):
+    # Get device identifier using fingerprint analysis
+    identifier = get_device_identifier(device_token, request.client.host)
+    
+    if not is_allowed(identifier):
         raise HTTPException(status_code=429, detail="You have hit your daily meme limit. Come back tomorrow 👀")
     
     image_bytes = await file.read() #bytes (raw binary data) from the uploaded file
@@ -109,7 +117,7 @@ async def generate_meme(
 
     meme_text = generate_meme_text(image_bytes, vibe)
     # Log all entries to a JSON file
-    log_event(ip, vibe, meme_text)
+    log_event(identifier, vibe, meme_text)
     
     image = Image.open(BytesIO(image_bytes)).convert("RGB") #load uploaded image
     draw = ImageDraw.Draw(image) #create a drawing context

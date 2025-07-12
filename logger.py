@@ -4,10 +4,10 @@ from pathlib import Path
 
 LOG_FILE = Path("meme_logs.json")
 
-def log_event(ip: str, vibe: str, caption: str):
+def log_event(identifier: str, vibe: str, caption: str):
     event = {
         "timestamp": datetime.utcnow().isoformat(),
-        "ip": ip,
+        "identifier": identifier,
         "vibe": vibe,
         "caption": caption
     }

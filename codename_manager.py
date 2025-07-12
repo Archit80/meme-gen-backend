@@ -14,11 +14,11 @@ def save_names(data):
     with open(NAME_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
-def get_or_create_name(ip: str):
+def get_or_create_name(identifier: str):
     names = load_names()
 
-    if ip not in names:
-        names[ip] = (coolname.generate_slug(2))
+    if identifier not in names:
+        names[identifier] = (coolname.generate_slug(2))
         save_names(names)
 
-    return names[ip]
+    return names[identifier]
