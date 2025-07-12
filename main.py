@@ -65,9 +65,9 @@ In this case, it tells FastAPI that the hello function should
 handle GET requests for the root path (/)
 '''
 
-@app.get("/greet/{name}")
-async def greet(name: str):
-    return {"message": f"Hello, {name} Ji!"}
+@app.get("/dummy/")
+async def helloji():
+    return {"message": "Hello Ji!"}
 
 
 @app.post("/whoami/")
