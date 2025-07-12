@@ -1,8 +1,8 @@
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, Header, UploadFile, File, Query, Request, Form
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Form
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+# from fastapi.staticfiles import StaticFiles
 
 
 from PIL import Image, ImageDraw, ImageFont
@@ -37,7 +37,8 @@ cloudinary.config(
 app = FastAPI() 
 
 origins = [
-    "http://localhost:5173", #frontend URL
+    "http://localhost:5173", #Dev frontend URL
+    "https://meme-aunty.vercel.app" #Production frontend URL
 ]
 
 app.add_middleware(
