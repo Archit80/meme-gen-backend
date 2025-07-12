@@ -14,7 +14,7 @@ def get_prompt_by_vibe(vibe: str):
     Generate a caption following this vibes:
     **Wholesome Mode:**  
     - Relatable, cute, Light, wholesome, or softly sarcastic 
-    - Think of desi life moments: chai, moms, crushes, college drama, awkward friendships, shaadi, delhi, samosa, rishta, rishtedaar etc.  
+    - Think of desi life moments: chai, moms, crushes, college drama, awkward friendships, shaadi, delhi, samosa, rishta, rishtedaar, dahej, paneer tikka etc.  
     - Format ideas: "When you...", "Me after...", "That moment when..."
     - Example: "When the samosa is fresh and the chai is perfect"
     IMPORTANT RULES:IMPORTANT RULES:
@@ -68,13 +68,14 @@ def image_to_gemini_payload(image_bytes):
     }
 
 # Main function to get meme caption
-def generate_meme_text(image_bytes, vibe="wholesome"):
+def generate_meme_text(image_bytes, vibe: str):
     prompt = get_prompt_by_vibe(vibe)
+    print("vibe:", vibe)
     model = genai.GenerativeModel("gemini-2.5-pro")
     image_payload = image_to_gemini_payload(image_bytes)
     
     response = model.generate_content(
         [prompt, image_payload]
     )
-    print("Response from Gemini:", response.text.strip())
-    return response.text.strip()
+    print("vibe:",vibe, "Response from Gemini:", response.text.strip())
+    return response.text.strip().upper()

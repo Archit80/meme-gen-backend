@@ -1,8 +1,9 @@
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, Header, UploadFile, File, Query, Request
+from fastapi import FastAPI, Depends, HTTPException, Header, UploadFile, File, Query, Request, Form
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+
 
 from PIL import Image, ImageDraw, ImageFont
 # import textwrap
@@ -19,7 +20,9 @@ from io import BytesIO
 
 from gemini_utils import generate_meme_text  #AI response
 from logger import log_event
-from rate_limit import is_allowed
+from rate_limit import is_allowed, get_usage
+from codename_manager import get_or_create_name
+
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -65,18 +68,38 @@ async def greet(name: str):
     return {"message": f"Hello, {name} Ji!"}
 
 
-@app.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
-    return {"filename": file.filename}
+@app.get("/whoami/")
+async def whoami(request: Request):
+    
+    # ip = 5689005
+    ip = request.client.host
+
+    name = get_or_create_name(ip)
+
+    return {
+        "name": name,
+        "credits_left": get_usage(ip)
+    }
+
+
+@app.get("/reset-quota")
+def reset_quota():
+    with open("rate_limit.json", "w") as f:
+        f.write("{}")
+    return {"message": "All quotas reset 🔄"}
 
 
 #MAIN LOGIC 
 @app.post("/generate-meme/")
 async def generate_meme(
     file:UploadFile = File(...),
-    vibe: str = Query("wholesome", enum = ["wholesome", "spicy", "savage"]),
+    vibe: str = Form(...),
     request: Request = None
     ):
+ 
+    ip = request.client.host
+    if not is_allowed(ip):
+        raise HTTPException(status_code=429, detail="You have hit your daily meme limit. Come back tomorrow 👀")
     
     image_bytes = await file.read() #bytes (raw binary data) from the uploaded file
     
@@ -84,13 +107,21 @@ async def generate_meme(
         raise HTTPException(status_code=400, detail="No image uploaded")
 
     meme_text = generate_meme_text(image_bytes, vibe)
+    # Log all entries to a JSON file
+    log_event(ip, vibe, meme_text)
     
     image = Image.open(BytesIO(image_bytes)).convert("RGB") #load uploaded image
     draw = ImageDraw.Draw(image) #create a drawing context
   
     # Load Impact font
     font_path = "fonts/impact.ttf"
-    font_size = int(image.height * 0.07)  # 7% of image height
+    
+    # Adjust font size based on image width
+    if image.width < 1000:
+        font_size = int(image.height * 0.05)  # 5% for smaller images
+    else:
+        font_size = int(image.height * 0.07)  # 7% for larger images
+
     font = ImageFont.truetype(font_path, font_size)    
 
     bbox = draw.textbbox((0, 0), meme_text, font=font)
@@ -120,8 +151,14 @@ async def generate_meme(
 
     # Text drawing with outline
     def draw_text_with_outline(draw, x, y, text, font):
-        for dx in [ -2, -1, 0, 1, 2]:
-            for dy in [-2, -1, 0, 1, 2]:
+        # Adjust outline thickness based on image size
+        if image.width < 1000 or image.height < 1000:
+            outline_range = [-1, 0, 1]  # Thinner outline for smaller images
+        else:
+            outline_range = [-2, -1, 0, 1, 2]  # Thicker outline for larger images
+            
+        for dx in outline_range:
+            for dy in outline_range:
                 if dx != 0 or dy != 0:
                     draw.text((x + dx, y + dy), text, font=font, fill="black")
         draw.text((x, y), text, font=font, fill="white")
@@ -137,11 +174,6 @@ async def generate_meme(
         draw_text_with_outline(draw, x, current_y, line, font)
         current_y += line_height
 
-    # Log all entries to a JSON file
-    ip = request.client.host
-    if not is_allowed(ip):
-        raise HTTPException(status_code=429, detail="You have hit your daily meme limit. Come back tomorrow 👀")
-    log_event(ip, vibe, meme_text)
 
     # return FileResponse(filename, media_type = "image/jpeg")
     # FileResponse directly downloads the image, but i gotta show it in the frontend

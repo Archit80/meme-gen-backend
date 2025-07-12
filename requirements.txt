@@ -6,3 +6,5 @@ pillow
 cloudinary
 google.generativeai
 python-multipart
+coolname
+petname
