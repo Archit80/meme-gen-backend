@@ -1,23 +1,65 @@
-# 🤖 Meme Aunty Backend - Code Architecture Guide
+# Meme Aunty Backend - Code Architecture
 
-## 📋 Overview
-A FastAPI-powered backend that generates AI memes using Google Gemini, with device fingerprinting for rate limiting and Cloudinary for image hosting.
+## Meme Aunty
+Your AI-Powered Indian Aunty Meme Generator 🚀
 
-## 🏗️ Project Structure & Code Flow
+Meme Aunty is a full-stack meme generation platform that creates hilarious, culturally authentic Indian aunty memes using Google Gemini AI — like having your favorite aunty roast you, but in meme format.
 
+## 🔥 Features
+
+**AI-Powered Caption Generation**
+- Google Gemini 2.5 Pro integration for contextual, image-aware captions
+- Three distinct aunty personalities: Wholesome, Spicy, and Savage
+- Dynamic prompt engineering based on selected vibe
+- Automatic text formatting and meme-style capitalization
+
+**Smart Rate Limiting & Security**
+- Device fingerprinting using browser characteristics
+- Daily quota system (10 memes per device)
+- Rate limiting that works across incognito/multiple browsers
+- IP fallback for devices without fingerprinting
+
+**Advanced Image Processing**
+- PIL-based text overlay with dynamic font sizing
+- Adaptive text wrapping and positioning
+- Text outline rendering for readability on any background
+- Cloud storage integration with Cloudinary
+
+**User Management**
+- Fun codename generation for each device (e.g., "brave-penguin")
+- Persistent user identity across sessions
+- Usage tracking and credit monitoring
+- Event logging for analytics
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Backend | FastAPI, Python 3.13 |
+| AI | Google Gemini 2.5 Pro API |
+| Image Processing | Pillow (PIL), Custom font rendering |
+| Storage | Cloudinary (image hosting) |
+| Database | JSON files (rate limits, fingerprints, names) |
+| Security | Device fingerprinting, Rate limiting |
+| Logging | Custom event logging system |
+
+## 📁 Project Structure
 ```
 Server/
-├── main.py                    # FastAPI app & main endpoints
-├── gemini_utils.py           # Google Gemini AI integration
-├── fingerprint_analyzer.py   # Device fingerprinting logic
-├── rate_limit.py             # Rate limiting system
-├── codename_manager.py       # User identity management
-├── logger.py                 # Event logging
-├── fonts/                    # Font files for memes
-└── memes/                    # Local meme storage (if needed)
+├── main.py                    → FastAPI app and main endpoints
+├── gemini_utils.py           → Google Gemini AI integration
+├── fingerprint_analyzer.py   → Device fingerprinting and anti-abuse
+├── rate_limit.py             → Daily quota management system
+├── codename_manager.py       → Fun username generation
+├── logger.py                 → Event tracking and analytics
+├── fonts/                    → Font files for meme text rendering
+│   ├── impact.ttf           → Classic meme font
+│   └── papyrus.ttf          → Alternative font option
+├── memes/                    → Local meme storage (if needed)
+└── __pycache__/              → Python bytecode cache
 ```
 
----
+ ---
 
 ## 🔄 Application Flow
 
@@ -50,33 +92,39 @@ graph TD
 
 ## 📂 Module Functions
 
-### **main.py** - API Endpoints & Image Logic
-- `generate_meme()`: The main endpoint that orchestrates the entire meme generation process.
-- `whoami()`: Identifies the user based on their device token and returns their codename and remaining credits.
-- `wrap_text()`: Wraps the generated meme caption to fit within the image's width.
-- `draw_text_with_outline()`: Renders the text onto the image using PIL, complete with an outline for readability.
+## 📂 Module Functions
 
-### **fingerprint_analyzer.py** - Device Identification
-- `analyze_device_token()`: Parses the combined device token to extract the core fingerprint.
-- `get_device_identifier()`: Returns the most reliable identifier (fingerprint > IP address) for rate limiting.
-- `load_fingerprints()` / `save_fingerprints()`: Manages the `device_fingerprints.json` database.
+### **main.py** - FastAPI Application & Image Processing
+- `generate_meme()` - POST endpoint that processes uploaded image, calls Gemini AI, renders text with PIL, uploads to Cloudinary
+- `whoami()` - POST endpoint that analyzes device token, generates username, returns remaining credits (format: `{"username": "clever-mongoose", "credits": 7}`)
+- `wrap_text()` - Splits long AI captions into multiple lines based on image width and font metrics using PIL's textlength()
+- `draw_text_with_outline()` - Renders white text with black outline for visibility, adapts thickness based on image size
 
-### **gemini_utils.py** - AI Caption Generation
-- `generate_meme_text()`: Sends the image and a vibe-based prompt to the Google Gemini API to get a caption.
-- `get_prompt_by_vibe()`: Selects a specific personality prompt (wholesome, spicy, or savage) based on user selection.
-- `image_to_gemini_payload()`: Converts the uploaded image into a format that the Gemini API can process.
+### **fingerprint_analyzer.py** - Anti-Abuse & Device Tracking
+- `analyze_device_token()` - Parses "fingerprint-uuid" format, groups localStorage tokens by device fingerprint in JSON database
+- `get_device_identifier()` - Returns device fingerprint for rate limiting, falls back to IP if no token provided
+- `load_fingerprints()` / `save_fingerprints()` - JSON database operations for device_fingerprints.json
+- Database structure: `{"abc123": ["uuid1", "uuid2"], "def456": ["uuid3"]}` (one device, multiple browser sessions)
 
-### **rate_limit.py** - Quota Management
-- `is_allowed()`: Checks if a user has exceeded their daily meme generation limit.
-- `get_usage()`: Calculates and returns the number of credits a user has left for the day.
-- `load_limits()` / `save_limits()`: Manages the `rate_limit.json` database.
+### **gemini_utils.py** - AI Caption Generation with Google Gemini
+- `generate_meme_text()` - Sends image bytes + vibe prompt to Gemini 2.5 Pro, returns uppercase meme text
+- `get_prompt_by_vibe()` - Returns different Indian aunty personas: wholesome (family-friendly), spicy (sassy), savage (roasting)
+- `image_to_gemini_payload()` - Converts PIL Image or raw bytes to Gemini's expected format for vision API calls
 
-### **codename_manager.py** - User Identity
-- `get_or_create_name()`: Assigns a fun, persistent codename (e.g., "clever-mongoose") to a new device identifier.
-- `load_names()` / `save_names()`: Manages the `ip_names.json` database.
+### **rate_limit.py** - Daily Quota System (10 memes/device/day)
+- `is_allowed()` - Checks if device can generate more memes, creates/updates user records, enforces daily reset
+- `get_usage()` - Returns remaining credits for device, automatically resets count if new day detected
+- `load_limits()` / `save_limits()` - JSON operations for rate_limit.json 
+- Database structure: `{"device_id": {"date": "2025-01-15", "count": 7}}` (tracks daily usage per device)
 
-### **logger.py** - Event Logging
-- `log_event()`: Records details of each meme generation event into `meme_logs.json`.
+### **codename_manager.py** - Fun User Identity Generation
+- `get_or_create_name()` - Generates memorable animal names like "clever-mongoose", "brave-penguin" for each device
+- `load_names()` / `save_names()` - JSON operations for ip_names.json mapping device IDs to persistent usernames
+- Uses `coolname` library to create family-friendly, memorable identifiers that users can recognize
+
+### **logger.py** - Event Tracking & Analytics
+- `log_event()` - Records meme generation events with timestamp, device ID, vibe selection, success/error status
+- Writes structured logs to meme_logs.json for debugging, usage analytics, and monitoring system health
 
 ## 🛠️ Development Setup
 
