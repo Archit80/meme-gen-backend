@@ -14,12 +14,12 @@ def get_prompt_by_vibe(vibe: str):
     Generate a caption following this vibes:
     **Wholesome Mode:**  
     - Relatable, cute, Light, wholesome, or softly sarcastic 
-    - Think of desi life moments: chai, moms, crushes, college drama, awkward friendships, shaadi, delhi, samosa, rishta, rishtedaar, dahej, paneer tikka etc.  
+    - Think of desi life moments:  PANEER TIKKA, chai, moms, crushes, college drama, awkward friendships, shaadi, delhi, samosa, dahej, food etc.  
     - Format ideas: "When you...", "Me after...", "That moment when..."
     - Example: "When the samosa is fresh and the chai is perfect"
     IMPORTANT RULES:IMPORTANT RULES:
     - Output: Return ONLY the caption text. No explanations or extra words.
-    - caption MUST relate specifically to what's visible in the image, in a single line
+    - caption should relate specifically to what's visible in the image, in a single line
     - Use the EXACT caption structure and style you'd see in viral Instagram/Twitter memes
     - Include popular phrasing, trending expressions, and Gen Z lingo where appropriate
     - Don't be generic - be SPECIFIC to the image content
@@ -34,7 +34,7 @@ def get_prompt_by_vibe(vibe: str):
         - Example: "POV: Your friend who said 'bas ek drink' at 7pm and it's now 3am"
         IMPORTANT RULES:
         - Output: Return ONLY the caption text. No explanations or extra words.
-        - caption MUST relate specifically to what's visible in the image, in a single line
+        - caption should relate specifically to what's visible in the image, in a single line
         - Use the EXACT caption structure and style you'd see in viral Instagram/Twitter memes
         - Include popular phrasing, trending expressions, and Gen Z lingo where appropriate
         - Don't be generic - be SPECIFIC to the image content
@@ -50,7 +50,7 @@ def get_prompt_by_vibe(vibe: str):
         - Example: "that one nigga trying to open Maharashtra mein coaching centre", "that one MF whenever...", "the autistic girl..."         IMPORTANT RULES:
         IMPORTANT RULES:
         - Output: Return ONLY the caption text. No explanations or extra words.
-        - caption MUST relate specifically to what's visible in the image, in a single line
+        - caption should relate specifically to what's visible in the image, in a single line
         - Use the EXACT caption structure and style you'd see in viral Instagram/Twitter memes
         - Include popular phrasing, trending expressions, and Gen Z lingo where appropriate
         - Don't be generic - be SPECIFIC to the image content
