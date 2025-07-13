@@ -136,7 +136,7 @@ async def generate_meme(
     # ADD WATERMARK LOGIC HERE
     # Watermark settings
     watermark_text = "Meme Aunty by Archit80"
-    watermark_font_size = max(16, int(image.height * 0.0375))  # Minimum 16px, scales with image (increased from 0.015 to 0.025)
+    watermark_font_size = max(12, int(image.height * 0.03))  # Minimum 16px, scales with image (increased from 0.015 to 0.025)
     
     try:
         # Use the calculated font size with Impact font
