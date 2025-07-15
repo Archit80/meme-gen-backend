@@ -70,7 +70,7 @@ def image_to_gemini_payload(image_bytes):
 # Main function to get meme caption
 def generate_meme_text(image_bytes, vibe: str):
     prompt = get_prompt_by_vibe(vibe)
-    model = genai.GenerativeModel("gemini-2.5-pro")
+    model = genai.GenerativeModel("gemini-2.5-flash")
     image_payload = image_to_gemini_payload(image_bytes)
     
     response = model.generate_content(
