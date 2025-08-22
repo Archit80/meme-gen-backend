@@ -14,7 +14,7 @@ def get_prompt_by_vibe(vibe: str):
     Generate a caption following this vibes:
     **Wholesome Mode:**  
     - Relatable, cute, Light, wholesome, or softly sarcastic 
-    - Think of desi life moments: PANEER TIKKA, chai, moms, crushes, college drama, awkward friendships, shaadi, delhi, samosa, dahej, food etc.  
+    - Think of desi life moments: PANEER TIKKA, chai, moms, crushes, college drama, awkward friendships, shaadi, delhi, samosa, food etc.  
     - Format ideas: "When you...", "Me after...", "That moment when..."
     - Example: "When the samosa is fresh and the chai is perfect"
     IMPORTANT RULES:IMPORTANT RULES:
@@ -69,21 +69,24 @@ def image_to_gemini_payload(image_bytes):
 # Main function to get meme caption
 def generate_meme_text(image_bytes, vibe: str):
     prompt = get_prompt_by_vibe(vibe)
-    model = genai.GenerativeModel("gemini-2.5-pro")
+    model = genai.GenerativeModel("gemini-2.5-flash")
     image_payload = image_to_gemini_payload(image_bytes)
     
     try:
         response = model.generate_content(
             [prompt, image_payload]
         )
+        print("Response object:", response)
         
         # Check if response was blocked or filtered
-        # if response.candidates and response.candidates[0].finish_reason == 1:
-        #     # Safety filter triggered, return a fallback
-        #     return "CONTENT WAS FILTERED - TRY A DIFFERENT IMAGE OR VIBE"
+        if response.candidates and response.candidates[0].finish_reason == "SAFETY":
+            # Safety filter triggered, return a fallback
+            print("Safety filter triggered - finish_reason is SAFETY")
+            return "CONTENT WAS FILTERED - TRY A DIFFERENT IMAGE OR VIBE"
         
         # Check if response has valid text
-        if not response.text:
+        if not hasattr(response, 'text') or not response.text:
+            print("No valid text in response")
             return "UNABLE TO GENERATE CAPTION - TRY AGAIN"
             
         return response.text.strip().upper()
@@ -91,8 +94,10 @@ def generate_meme_text(image_bytes, vibe: str):
     except ValueError as e:
         # Handle the specific ValueError when response.text is not available
         if "response.text" in str(e):
+            print("ValueError accessing response.text:", str(e))
             return "CONTENT BLOCKED BY SAFETY FILTERS - TRY DIFFERENT VIBE"
         raise e
     except Exception as e:
         # Handle any other unexpected errors
+        print("Unexpected error:", str(e))
         return f"ERROR GENERATING CAPTION - {str(e)[:50]}"
