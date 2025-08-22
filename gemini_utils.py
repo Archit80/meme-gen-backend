@@ -29,7 +29,7 @@ def get_prompt_by_vibe(vibe: str):
         **Spicy Mode:**  
         - Sharp, witty, clever in a flirty way and sarcastic with strong Gen Z energy
         - Use viral formats like: "POV:", "No one literally no one:", "unemployed friend on tuesday evening"
-        - Must include current slang, Hinglish, or pop culture references like Chhapri, Bihar, Bigg Boss, Kota Factory, rizz, TCS, aura etc.
+        - Must include current slang, Hinglish, or pop culture references like Chhapri, Bigg Boss, Kota Factory, rizz, TCS, aura etc.
         - Example: "POV: Your friend who said 'bas ek drink' at 7pm and it's now 3am"
         IMPORTANT RULES:
         - Output: Return ONLY the caption text. No explanations or extra words.
@@ -41,15 +41,13 @@ def get_prompt_by_vibe(vibe: str):
         return """
         You are a professional meme creator for the Indian Gen Z internet audience. Your job is to look at the provided image and write a meme caption, with tone of humor and intensity. This caption must be funny, clever, and image-relevant — like something you’d see go viral on Instagram, Twitter, or Reddit.
         **Savage Mode (Brutal Honesty):**  
-        - DARK, brutal, offensive, NSFW humor using controversial topics of current times like politics, social issues, scams, coaching institutes or toxic traits
+        - DARK, brutal, offensive, NSFW humor using controversial topics of current times like politics, social issues, scams, institutes or toxic traits
         - Dark humor, brutal truths, petty call-outs, or chaotic evil energy. Not just sad, but sharp and witty.
         - Think about: Calling out hypocrisy, toxic traits (in self or others), petty revenge, moments of unhinged honesty.
-        - It should feel like a roast of the person in image.
         - Don't be a lot disrespectful or offensive, keep it edgy but not too harsh
         - DO NOT use the word "Bihari" or "Bihar" in any form
         - Try to not directly name any Political Parties, Politicians, Religion , or Religious Leaders but you can pass a reference to them
-        - Do NOT use any abusive or offensive words — especially Hindi slangs like “chutiya”, “bhosdike”, “madarchod”, or anything vulgar/offensive in hindi. 
-        - Example: "that one nigga trying to open Maharashtra mein coaching centre", "that one MF whenever...", "the autistic girl..."
+        - Example: "that friend who gives relationship advice but has been single for 3 years", "me pretending to be productive while scrolling reels", "when you're broke but still adding items to your cart"
         IMPORTANT RULES:
         - Output: Return ONLY the caption text. No explanations or extra words.
         - caption should relate specifically to what's visible in the image, in a single line
@@ -74,7 +72,27 @@ def generate_meme_text(image_bytes, vibe: str):
     model = genai.GenerativeModel("gemini-2.5-pro")
     image_payload = image_to_gemini_payload(image_bytes)
     
-    response = model.generate_content(
-        [prompt, image_payload]
-    )
-    return response.text.strip().upper()
+    try:
+        response = model.generate_content(
+            [prompt, image_payload]
+        )
+        
+        # Check if response was blocked or filtered
+        # if response.candidates and response.candidates[0].finish_reason == 1:
+        #     # Safety filter triggered, return a fallback
+        #     return "CONTENT WAS FILTERED - TRY A DIFFERENT IMAGE OR VIBE"
+        
+        # Check if response has valid text
+        if not response.text:
+            return "UNABLE TO GENERATE CAPTION - TRY AGAIN"
+            
+        return response.text.strip().upper()
+        
+    except ValueError as e:
+        # Handle the specific ValueError when response.text is not available
+        if "response.text" in str(e):
+            return "CONTENT BLOCKED BY SAFETY FILTERS - TRY DIFFERENT VIBE"
+        raise e
+    except Exception as e:
+        # Handle any other unexpected errors
+        return f"ERROR GENERATING CAPTION - {str(e)[:50]}"
